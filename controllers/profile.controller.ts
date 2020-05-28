@@ -1,6 +1,6 @@
 import Auth from "../models/auth.model";
 import { ObjectId } from "mongodb";
-import upload from "../config/multer.config";
+import uploadMulter from "../config/multer.config";
 
 let jwt = require('jsonwebtoken');
 
@@ -77,7 +77,7 @@ class ProfileController {
     }
 
     editProfile(req: any, res: any) {
-        upload(req, res, (err: any) => {
+        uploadMulter.upload(req, res, (err: any) => {
             if (err) {
                 res.send({
                     error: err

@@ -2,23 +2,23 @@ import { ObjectId } from "mongodb";
 
 const mongoose = require('mongoose');
 
-const followSchema = mongoose.Schema({
+const notificationSchema = mongoose.Schema({
     userId: {
         type: ObjectId
     },
-    responderId: {
+    message: {
+        type: String
+    },
+    respondentId: {
         type: ObjectId
     },
-    followStatus: {
+    type: {
         type: Number
     },
     timestamp: {
         type: Date
-    },
-    block: {
-        type: Boolean
     }
 })
 
-const Follow = mongoose.model('follow', followSchema);
-export default Follow;
+const Notification = mongoose.model('notification', notificationSchema);
+export default Notification;

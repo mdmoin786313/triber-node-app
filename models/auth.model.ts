@@ -39,10 +39,10 @@ const authSchema = mongoose.Schema({
     profileLikes: {
         type: Number
     },
-    publicProfile: {
+    public: {
         type: Boolean
     },
-    profileVerified: {
+    verified: {
         type: Boolean
     },
     timestamp: {

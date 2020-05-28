@@ -1,11 +1,13 @@
+import { ObjectId } from "mongodb";
+
 const mongoose = require('mongoose');
 
 const likeSchema = mongoose.Schema({
     userId: {
-        type: String
+        type: ObjectId
     },
     postId: {
-        type: String
+        type: ObjectId
     },
     like: {
         type: Boolean

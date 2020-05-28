@@ -1,21 +1,27 @@
 import Auth from '../models/auth.model';
+import OTP from '../models/otp.model';
 let jwt = require('jsonwebtoken');
 let bcrypt = require('bcrypt')
 
 export default class AuthController {
     usernameCheck(req: any, res: any) {
-        Auth.find({ 'username': req.body.username }, (error: any, result: any) => {
-            var rest = Buffer.from(result);
-            var len = rest.length;
+        Auth.findOne({ 'username': req.body.username }, (error: any, result: any) => {
             if (error) {
                 res.send({
                     message: "Record Error!",
                     error: error
                 })
-            } else if (len > 0) {
+            } else if (result == null) {
+                res.send({
+                    message: "Username Available",
+                    result: result,
+                    responseCode: 1
+                })
+            } else {
                 res.send({
                     message: "Username already taken",
-                    result: result
+                    result: result,
+                    responseCode: 0
                 })
             }
         })
@@ -33,7 +39,8 @@ export default class AuthController {
             } else if (len > 0) {
                 res.send({
                     message: "Phone already Registered",
-                    result: result
+                    result: result,
+                    responseCode: 0
                 })
             } else {
                 bcrypt.hash(req.body.password, 10, (error: any, hash: any) => {
@@ -45,7 +52,14 @@ export default class AuthController {
                             username: req.body.username,
                             password: userPass,
                             fullname: req.body.fullname,
-                            phone: req.body.phone
+                            phone: req.body.phone,
+                            email: req.body.email,
+                            public: true,
+                            verified: false,
+                            followersCount: 0,
+                            followingCount: 0,
+                            postCount: 0,
+                            timestamp: Date.now()
                         }
                         Auth.create(schema, (error: any, resultUser: any) => {
                             if (error) {
@@ -60,13 +74,31 @@ export default class AuthController {
                                     fullname: resultUser.fullname,
                                     phone: resultUser.phone,
                                     password: resultUser.password,
+                                    followersCount: resultUser.followerCount,
+                                    followingCount: resultUser.followingCount,
+                                    postCount: resultUser.postCount,
+                                    public: resultUser.public,
+                                    verified: resultUser.verified,
+                                    timestamp: resultUser.timestamp
                                 }
                                 jwt.sign(jwtSchema, 'moin1234', (error: any, result: any) => {
                                     if (error) throw error;
-                                    res.send({
-                                        message: 'User Created',
-                                        token: result,
-                                        user: resultUser
+                                    var num = Math.floor(Math.random() * 90000) + 10000;
+                                    OTP.create({ userId: resultUser._id, otp: num, timestamp: Date.now() }, (error: any, otp: any) => {
+                                        if (error) {
+                                            res.send({
+                                                message: 'Error',
+                                                error: error
+                                            })
+                                        } else {
+                                            res.send({
+                                                message: 'User Created',
+                                                token: result,
+                                                user: resultUser,
+                                                otp: otp,
+                                                responseCode: 1
+                                            })
+                                        }
                                     })
                                 })
                             }
@@ -84,6 +116,11 @@ export default class AuthController {
                     message: 'Error',
                     error: error
                 })
+            } else if (result == null) {
+                res.send({
+                    message: 'No User Found',
+                    responseCode: 2
+                })
             } else {
                 bcrypt.compare(req.body.password, result.password, (error: any, match: any) => {
                     if (error) throw error;
@@ -99,16 +136,28 @@ export default class AuthController {
                             followersCount: result.followersCount,
                             followingCount: result.followingCount,
                             postCount: result.postCount,
-                            bio: result.bio
+                            bio: result.bio,
+                            public: result.public,
+                            verified: result.verified,
+                            timestamp: result.timestamp
                         }
                         jwt.sign(jwtSchema, 'moin1234', (error: any, token: any) => {
                             if (error) throw error;
-                            res.send({
-                                message: 'User Logged In',
-                                token: token,
-                                user: result,
-                                responseCode: 1
-                            })
+                            if (result.verified == true) {
+                                res.send({
+                                    message: 'User Logged In',
+                                    token: token,
+                                    user: result,
+                                    responseCode: 1
+                                })
+                            } else if (result.verified == false) {
+                                res.send({
+                                    message: 'User Not Verified',
+                                    token: token,
+                                    user: result,
+                                    responseCode: 3
+                                })
+                            }
                         })
                     } else {
                         res.send({

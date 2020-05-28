@@ -1,11 +1,13 @@
+import { ObjectId } from "mongodb";
+
 const mongoose = require('mongoose');
 
 const bookmarkSchema = mongoose.Schema({
     userId: {
-        type: String
+        type: ObjectId
     },
     postId: {
-        type: String
+        type: ObjectId
     },
     bookmark: {
         type: Boolean

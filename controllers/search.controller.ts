@@ -18,9 +18,15 @@ class SearchController {
                 } else {
                     var search = req.body.search;
                     Auth.find({ $or: [{ username: { $regex: search, $options: '$i' } }, { fullname: { $regex: search, $options: '$i' } }] }, (error: any, result: any) => {
+                        var resp = Buffer.from(result);
+                        var len = resp.length;
                         if (error) {
                             res.send({
                                 error: error,
+                            })
+                        } else if (len == 0) {
+                            res.send({
+                                message: 'No Search Result',
                                 responseCode: 0
                             })
                         } else {

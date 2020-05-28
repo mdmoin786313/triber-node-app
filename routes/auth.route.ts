@@ -19,10 +19,15 @@ export default class AuthRoute {
         app.post('/v1/verifytoken', authController.verifyToken)
     }
 
+    usernameCheck(app: Express) {
+        app.post('/v1/usernamecheck', authController.usernameCheck);
+    }
+
     authRoute(app: Express) {
         this.userAuth(app);
         this.userInfo(app);
         this.userLogin(app);
         this.verifyToken(app);
+        this.usernameCheck(app);
     }
 }
