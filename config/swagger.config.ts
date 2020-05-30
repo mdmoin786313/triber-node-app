@@ -23,5 +23,7 @@ exports.swaggerJson = (req:any, res:any) => {
 }
 
 exports.swagger = (req:any, res:any) => {
-    res.redirect('/api-docs/index.html');
+    res.send({
+        message: 'Hello'
+    })
 }
