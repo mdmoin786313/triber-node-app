@@ -1,17 +1,22 @@
+import { ObjectId } from "mongodb";
+
 const mongoose = require('mongoose');
 
 const commentSchema = mongoose.Schema({
     userId: {
-        type: String
+        type: ObjectId
     },
     postId: {
-        type: String
+        type: ObjectId
     },
     comment: {
         type: String
     },
     likes: {
         type: Number
+    },
+    ownerLike: {
+        type: ObjectId
     },
     replies: {
         type: Number

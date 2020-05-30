@@ -529,7 +529,7 @@ class PostController {
                                                 error: error
                                             })
                                         } else {
-                                            Post.findOneAndUpdate({ _id: req.body.postId }, { superLikes: result.superLikes + 1 }, {new: true}, (error: any, result: any) => {
+                                            Post.findOneAndUpdate({ _id: req.body.postId }, { superLikes: result.superLikes + 1 }, { new: true }, (error: any, result: any) => {
                                                 if (error) {
                                                     res.send({
                                                         error: error
@@ -561,7 +561,7 @@ class PostController {
                                                     error: error
                                                 })
                                             } else {
-                                                Post.findOneAndUpdate({ _id: req.body.postId }, { superLikes: result.superLikes + 1 }, {new: true}, (error: any, result: any) => {
+                                                Post.findOneAndUpdate({ _id: req.body.postId }, { superLikes: result.superLikes + 1 }, { new: true }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -592,7 +592,7 @@ class PostController {
                                                     error: error
                                                 })
                                             } else {
-                                                Post.findOneAndUpdate({ _id: req.body.postId }, { superLikes: result.superLikes - 1 }, {new: true}, (error: any, result: any) => {
+                                                Post.findOneAndUpdate({ _id: req.body.postId }, { superLikes: result.superLikes - 1 }, { new: true }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -623,7 +623,7 @@ class PostController {
                                                     error: error
                                                 })
                                             } else {
-                                                Post.findOneAndUpdate({ _id: req.body.postId }, { superLikes: result.superLikes + 1 }, {new: true}, (error: any, result: any) => {
+                                                Post.findOneAndUpdate({ _id: req.body.postId }, { superLikes: result.superLikes + 1 }, { new: true }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -666,17 +666,37 @@ class PostController {
                         userId: tokenResult.id,
                         postId: req.body.postId,
                         comment: req.body.comment,
+                        likes: 0,
+                        replies: 0,
                         timestamp: Date.now()
                     }
-                    Comment.create(schema, (error: any, result: any) => {
+                    Comment.create(schema, (error: any, comment: any) => {
                         if (error) {
                             res.send({
                                 error: error
                             })
                         } else {
-                            res.send({
-                                message: 'Commented',
-                                result: result
+                            Post.findOne({ _id: comment.postId }, (error: any, result: any) => {
+                                if (error) {
+                                    res.send({
+                                        error: error
+                                    })
+                                } else {
+                                    Post.findOneAndUpdate({ _id: comment.postId }, { comments: result.comments + 1 }, {new: true}, (error: any, result: any) => {
+                                        if (error) {
+                                            res.send({
+                                                error: error
+                                            })
+                                        } else {
+                                            res.send({
+                                                message: 'Commented',
+                                                comment: comment,
+                                                result: result,
+                                                responseCode: 1
+                                            })
+                                        }
+                                    })
+                                }
                             })
                         }
                     })
@@ -722,7 +742,7 @@ class PostController {
                                                 error: error
                                             })
                                         } else {
-                                            Post.findOneAndUpdate({ _id: result._id }, { bookmarks: result.bookmarks + 1 }, {new: true}, (error: any, result: any) => {
+                                            Post.findOneAndUpdate({ _id: result._id }, { bookmarks: result.bookmarks + 1 }, { new: true }, (error: any, result: any) => {
                                                 if (error) {
                                                     res.send({
                                                         error: error
@@ -742,7 +762,7 @@ class PostController {
                             })
                         } else {
                             if (result.bookmark == false) {
-                                Bookmark.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, { bookmark: !result.bookmark, timestamp: Date.now() }, {new: true}, (error: any, bookmark: any) => {
+                                Bookmark.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, { bookmark: !result.bookmark, timestamp: Date.now() }, { new: true }, (error: any, bookmark: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -754,7 +774,7 @@ class PostController {
                                                     error: error
                                                 })
                                             } else {
-                                                Post.findOneAndUpdate({ _id: result._id }, { bookmarks: result.bookmarks + 1 }, {new: true}, (error: any, result: any) => {
+                                                Post.findOneAndUpdate({ _id: result._id }, { bookmarks: result.bookmarks + 1 }, { new: true }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -773,7 +793,7 @@ class PostController {
                                     }
                                 })
                             } else {
-                                Bookmark.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, { bookmark: !result.bookmark, timestamp: Date.now() }, {new: true}, (error: any, bookmark: any) => {
+                                Bookmark.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, { bookmark: !result.bookmark, timestamp: Date.now() }, { new: true }, (error: any, bookmark: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -785,7 +805,7 @@ class PostController {
                                                     error: error
                                                 })
                                             } else {
-                                                Post.findOneAndUpdate({ _id: result._id }, { bookmarks: result.bookmarks - 1 }, {new: true}, (error: any, result: any) => {
+                                                Post.findOneAndUpdate({ _id: result._id }, { bookmarks: result.bookmarks - 1 }, { new: true }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -827,7 +847,7 @@ class PostController {
                     Comment.aggregate([
                         {
                             '$match': {
-                                'postId': req.body.postId
+                                'postId': new ObjectId(req.body.postId)
                             }
                         },
                         {
@@ -835,9 +855,14 @@ class PostController {
                                 'from': 'auths',
                                 'localField': 'userId',
                                 'foreignField': '_id',
-                                'as': 'commentedUsers'
+                                'as': 'user'
                             },
                         },
+                        {
+                            '$sort': {
+                                'timestamp': -1
+                            }
+                        }
                     ], (error: any, result: any) => {
                         if (error) {
                             res.send({
@@ -846,7 +871,8 @@ class PostController {
                         } else {
                             res.send({
                                 message: 'Comments',
-                                result: result
+                                result: result,
+                                responseCode: 1
                             })
                         }
                     })

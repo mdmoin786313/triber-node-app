@@ -16,11 +16,15 @@ export default class FollowRoute {
     }
 
     followerList(app: Express) {
-        app.get('/v1/followers', followController.followerList);
+        app.post('/v1/followers', followController.followerList);
     }
 
     followingList(app: Express) {
-        app.get('/v1/following', followController.followingList);
+        app.post('/v1/following', followController.followingList);
+    }
+
+    followRequests(app: Express) {
+        app.get('/v1/requests', followController.followRequests);
     }
 
     followRoute(app: Express) {
@@ -29,5 +33,6 @@ export default class FollowRoute {
         this.acceptRequest(app);
         this.followerList(app);
         this.followingList(app);
+        this.followRequests(app);
     }
 }

@@ -1,6 +1,7 @@
 import Auth from "../models/auth.model";
 import { ObjectId } from "mongodb";
 import uploadMulter from "../config/multer.config";
+import Follow from "../models/follow.model";
 
 let jwt = require('jsonwebtoken');
 
@@ -41,14 +42,30 @@ class ProfileController {
                                 as: 'tags'
                             }
                         },
-                        {
-                            $lookup: {
-                                from: 'follow',
-                                localField: '_id',
-                                foreignField: 'responderId',
-                                as: 'followStat'
-                            }
-                        }
+                        // {
+                        //     $lookup: {
+                        //         from: 'follows',
+                        //         'let': {
+                        //             responderId: '$_id'
+                        //         },
+                        //         'pipeline': [{
+                        //             '$match': {
+                        //                 '$expr': {
+                        //                     '$and':
+                        //                         [
+                        //                             {
+                        //                                 '$eq': ['$userId', '$tokenResult.id']
+                        //                             },
+                        //                             {
+                        //                                 '$eq': ['$responderId', '$$responderId']
+                        //                             }
+                        //                         ]
+                        //                 }
+                        //             }
+                        //         }],
+                        //         as: 'followStat'
+                        //     }
+                        // }
                     ], (error: any, result: any) => {
                         if (error) {
                             res.send({
@@ -63,14 +80,55 @@ class ProfileController {
                                     responseCode: 1
                                 })
                             } else {
-                                res.send({
-                                    message: 'Profile',
-                                    result: result,
-                                    responseCode: 2
+                                Follow.findOne({ userId: tokenResult.id, responderId: id }, (error: any, followStatus: any) => {
+                                    if (error) {
+                                        res.send({
+                                            error: error,
+                                            responseCode: 0
+                                        })
+                                    } else {
+                                        res.send({
+                                            message: 'Profile',
+                                            result: result,
+                                            followStatus: followStatus,
+                                            responseCode: 2
+                                        })
+                                    }
                                 })
                             }
                         }
                     }).limit(1);
+                }
+            })
+        }
+    }
+
+    getProfile(req: any, res: any) {
+        var token = req.headers.token;
+        if (!token) {
+            res.send({
+                message: 'No Token Found'
+            })
+        } else {
+            jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
+                if (error) {
+                    res.send({
+                        error: error
+                    })
+                } else {
+                    Auth.findOne({ _id: tokenResult.id }, (error: any, result: any) => {
+                        if (error) {
+                            res.send({
+                                error: error
+                            })
+                        } else {
+                            res.send({
+                                message: 'Profile Details',
+                                result: result,
+                                responseCode: 1
+                            })
+                        }
+                    })
                 }
             })
         }
@@ -102,7 +160,7 @@ class ProfileController {
                                 email: req.body.email,
                                 phone: req.body.phone
                             }
-                            Auth.findOneAndUpdate({ _id: tokenResult._id }, schema, (error: any, result: any) => {
+                            Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
@@ -138,7 +196,7 @@ class ProfileController {
                                 email: req.body.email,
                                 phone: req.body.phone
                             }
-                            Auth.findOneAndUpdate({ _id: tokenResult._id }, schema, (error: any, result: any) => {
+                            Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error

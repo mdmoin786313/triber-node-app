@@ -45,6 +45,9 @@ const authSchema = mongoose.Schema({
     verified: {
         type: Boolean
     },
+    authenticated: {
+        type: Boolean
+    },
     timestamp: {
         type: Date
     }

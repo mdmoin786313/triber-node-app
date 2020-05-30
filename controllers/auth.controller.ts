@@ -56,9 +56,11 @@ export default class AuthController {
                             email: req.body.email,
                             public: true,
                             verified: false,
+                            authenticated: false,
                             followersCount: 0,
                             followingCount: 0,
                             postCount: 0,
+                            profileImage: 'https://assets.medcampus.io/assets/images/default-avatar.png',
                             timestamp: Date.now()
                         }
                         Auth.create(schema, (error: any, resultUser: any) => {
@@ -79,7 +81,8 @@ export default class AuthController {
                                     postCount: resultUser.postCount,
                                     public: resultUser.public,
                                     verified: resultUser.verified,
-                                    timestamp: resultUser.timestamp
+                                    timestamp: resultUser.timestamp,
+                                    profileImage: resultUser.profileImage
                                 }
                                 jwt.sign(jwtSchema, 'moin1234', (error: any, result: any) => {
                                     if (error) throw error;
@@ -139,7 +142,7 @@ export default class AuthController {
                             bio: result.bio,
                             public: result.public,
                             verified: result.verified,
-                            timestamp: result.timestamp
+                            timestamp: result.timestamp,
                         }
                         jwt.sign(jwtSchema, 'moin1234', (error: any, token: any) => {
                             if (error) throw error;
