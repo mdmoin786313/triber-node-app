@@ -94,6 +94,7 @@ class PostController {
                             '$match': {
                                 'userId': new ObjectId(tokenResult.id),
                                 'followStatus': 2,
+                                'mute': false
                             }
                         },
                         {
@@ -295,15 +296,22 @@ class PostController {
                         error: error
                     })
                 } else {
-                    Mute.findOne({ subjectId: req.body.postId }, (error: any, result: any) => {
+                    Follow.findOne({ responderId: req.body.responderId, userId: tokenResult.id }, (error: any, result: any) => {
                         // var resp = Buffer.from(result);
                         // var len = resp.length;
                         if (error) {
                             res.send({
                                 error: error
                             })
-                        } else if (result == 0) {
-                            Mute.create({ subjectId: req.body.postId, userId: tokenResult.id, mute: true, type: 1 }, (error: any, result: any) => {
+                        } else if (result == null) {
+                            var schema = {
+                                responderId: req.body.responderId,
+                                userId: tokenResult.id,
+                                mute: true,
+                                block: false,
+                                timestamp: Date.now()
+                            }
+                            Follow.create(schema, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
@@ -311,12 +319,13 @@ class PostController {
                                 } else {
                                     res.send({
                                         message: 'Muted',
-                                        result: result
+                                        result: result,
+                                        responseCode: 1
                                     })
                                 }
                             })
                         } else {
-                            Mute.findOneAndUpdate({ subjectId: req.body.postId, userId: tokenResult.id }, { mute: !result.mute }, (error: any, result: any) => {
+                            Follow.findOneAndUpdate({ responderId: req.body.responderId, userId: tokenResult.id }, { mute: !result.mute, timestamp: Date.now() }, { new: true }, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
@@ -324,7 +333,8 @@ class PostController {
                                 } else {
                                     res.send({
                                         message: 'Muted',
-                                        result: result
+                                        result: result,
+                                        responseCode: 1
                                     })
                                 }
                             })
@@ -682,7 +692,7 @@ class PostController {
                                         error: error
                                     })
                                 } else {
-                                    Post.findOneAndUpdate({ _id: comment.postId }, { comments: result.comments + 1 }, {new: true}, (error: any, result: any) => {
+                                    Post.findOneAndUpdate({ _id: comment.postId }, { comments: result.comments + 1 }, { new: true }, (error: any, result: any) => {
                                         if (error) {
                                             res.send({
                                                 error: error
@@ -812,7 +822,7 @@ class PostController {
                                                         })
                                                     } else {
                                                         res.send({
-                                                            message: 'Bookmarked',
+                                                            message: 'UnBookmarked',
                                                             result: result,
                                                             bookmark: bookmark,
                                                             responseCode: 1

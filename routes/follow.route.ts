@@ -12,7 +12,11 @@ export default class FollowRoute {
     }
 
     acceptRequest(app: Express) {
-        app.post('/v1/acceptrequest', followController.acceptRequest);
+        app.post('/v1/accept', followController.acceptRequest);
+    }
+
+    declineRequest(app: Express) {
+        app.post('/v1/decline', followController.declineRequest);
     }
 
     followerList(app: Express) {
@@ -34,5 +38,6 @@ export default class FollowRoute {
         this.followerList(app);
         this.followingList(app);
         this.followRequests(app);
+        this.declineRequest(app);
     }
 }

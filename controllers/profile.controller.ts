@@ -87,12 +87,23 @@ class ProfileController {
                                             responseCode: 0
                                         })
                                     } else {
-                                        res.send({
-                                            message: 'Profile',
-                                            result: result,
-                                            followStatus: followStatus,
-                                            responseCode: 2
+                                        Follow.findOne({ userId: id, responderId: tokenResult.id }, (error: any, blockStatus: any) => {
+                                            if (error) {
+                                                res.send({
+                                                    error: error,
+                                                    responseCode: 0
+                                                })
+                                            } else {
+                                                res.send({
+                                                    message: 'Profile',
+                                                    result: result,
+                                                    followStatus: followStatus,
+                                                    blockStatus: blockStatus,
+                                                    responseCode: 2
+                                                })
+                                            }
                                         })
+                                        
                                     }
                                 })
                             }

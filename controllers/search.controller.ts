@@ -17,7 +17,7 @@ class SearchController {
                     })
                 } else {
                     var search = req.body.search;
-                    Auth.find({ $or: [{ username: { $regex: search, $options: '$i' } }, { fullname: { $regex: search, $options: '$i' } }] }, (error: any, result: any) => {
+                    Auth.find({ $or: [{ username: { $ne: tokenResult.username, $regex: search, $options: '$i' } }, { fullname: { $ne: tokenResult.fullname, $regex: search, $options: '$i' } }] }, (error: any, result: any) => {
                         var resp = Buffer.from(result);
                         var len = resp.length;
                         if (error) {

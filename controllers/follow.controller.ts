@@ -21,8 +21,9 @@ class FollowController {
                 } else {
                     var schema = {
                         userId: tokenResult.id,
-                        responderId: new ObjectId(req.body.responderId),
+                        responderId: req.body.responderId,
                         followStatus: 1,
+                        mute: false,
                         timestamp: Date.now()
                     }
                     Follow.findOne({ userId: schema.userId, responderId: schema.responderId }, (error: any, result: any) => {
@@ -31,7 +32,7 @@ class FollowController {
                                 error: error
                             })
                         } else {
-                            Auth.findOne({ _id: tokenResult.id }, (error:any, tokenUser: any) => {
+                            Auth.findOne({ _id: tokenResult.id }, (error: any, tokenUser: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
@@ -44,7 +45,14 @@ class FollowController {
                                                     error: error
                                                 })
                                             } else if (user.public == false) {
-                                                Follow.create(schema, (error: any, follow: any) => {
+                                                var schema2 = {
+                                                    userId: tokenResult.id,
+                                                    responderId: req.body.responderId,
+                                                    followStatus: 1,
+                                                    mute: false,
+                                                    timestamp: Date.now()
+                                                }
+                                                Follow.create(schema2, (error: any, follow: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -64,7 +72,7 @@ class FollowController {
                                                                 })
                                                             } else {
                                                                 res.send({
-                                                                    message: 'User Requested',
+                                                                    message: 'User Requested 1',
                                                                     result: result,
                                                                     follow: follow,
                                                                     responseCode: 1
@@ -76,8 +84,9 @@ class FollowController {
                                             } else {
                                                 var schema = {
                                                     userId: tokenResult.id,
-                                                    responderId: new ObjectId(req.body.responderId),
+                                                    responderId: req.body.responderId,
                                                     followStatus: 2,
+                                                    mute: false,
                                                     timestamp: Date.now()
                                                 }
                                                 Follow.create(schema, (error: any, follow: any) => {
@@ -156,7 +165,7 @@ class FollowController {
                                                                     })
                                                                 } else {
                                                                     res.send({
-                                                                        message: 'User Requested',
+                                                                        message: 'User Requested 2',
                                                                         result: result,
                                                                         follow: follow,
                                                                         responseCode: 1
@@ -234,7 +243,7 @@ class FollowController {
                                                             })
                                                         }
                                                     })
-                                                } else if (user.public == true && result.followStatus == 2) {
+                                                } else if ((user.public == true && result.followStatus == 2) || (user.public == false && result.followStatus == 2)) {
                                                     Follow.findOneAndUpdate({ userId: schema.userId, responderId: schema.responderId }, { followStatus: 0, timestamp: Date.now() }, { new: true }, (error: any, follow: any) => {
                                                         if (error) {
                                                             res.send({
@@ -278,7 +287,7 @@ class FollowController {
                                         })
                                     }
                                 }
-                            })                            
+                            })
                         }
                     })
                 }
@@ -300,7 +309,7 @@ class FollowController {
                     })
                 } else {
                     var schema = {
-                        userId: tokenResult._id,
+                        userId: new ObjectId(tokenResult.id),
                         responderId: new ObjectId(req.body.responderId),
                         block: true,
                         timestamp: Date.now()
@@ -310,7 +319,7 @@ class FollowController {
                             res.send({
                                 error: error
                             })
-                        } else if (result == 0) {
+                        } else if (result == null) {
                             Follow.create(schema, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
@@ -319,12 +328,13 @@ class FollowController {
                                 } else {
                                     res.send({
                                         message: 'Blocked',
-                                        result: result
+                                        result: result,
+                                        responseCode: 1
                                     })
                                 }
                             })
                         } else {
-                            Follow.findOneAndUpdate({ userId: schema.userId, responderId: schema.responderId }, { block: !result.block }, (error: any, result: any) => {
+                            Follow.findOneAndUpdate({ userId: schema.userId, responderId: schema.responderId }, { block: !result.block }, { new: true }, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
@@ -332,7 +342,8 @@ class FollowController {
                                 } else {
                                     res.send({
                                         message: 'Blocked',
-                                        result: result
+                                        result: result,
+                                        responseCode: 1
                                     })
                                 }
                             })
@@ -357,8 +368,8 @@ class FollowController {
                     })
                 } else {
                     var schema = {
-                        userId: req.body.userId,
-                        responderId: tokenResult._id,
+                        userId: new ObjectId(req.body.userId),
+                        responderId: new ObjectId(tokenResult.id),
                         followStatus: 1
                     }
                     Follow.findOneAndUpdate(schema, { followStatus: 2, timestamp: Date.now() }, (error: any, result: any) => {
@@ -373,31 +384,50 @@ class FollowController {
                                         error: error
                                     })
                                 } else {
-                                    Auth.findOneAndUpdate({ _id: schema.responderId }, { followersCount: result.followersCount + 1 }, (error: any, result: any) => {
+                                    Auth.findOneAndUpdate({ _id: schema.responderId }, { followersCount: result.followersCount + 1 }, { new: true }, (error: any, user: any) => {
                                         if (error) {
                                             res.send({
                                                 error: error
                                             })
                                         } else {
-                                            var notifySchema = {
-                                                userId: tokenResult.id,
-                                                message: tokenResult.username + ' has accepted your follow request.',
-                                                respondentId: schema.responderId,
-                                                type: 3,
-                                                timestamp: Date.now()
-                                            }
-                                            Notification.create(notifySchema, (error: any, result: any) => {
+                                            Auth.findOne({ _id: schema.userId }, (error: any, follower: any) => {
                                                 if (error) {
                                                     res.send({
                                                         error: error
                                                     })
                                                 } else {
-                                                    res.send({
-                                                        message: 'User Accepted',
-                                                        result: result
+                                                    Auth.findOneAndUpdate({ _id: schema.userId }, { followingCount: follower.followingCount + 1 }, { new: true }, (error: any, follower: any) => {
+                                                        if (error) {
+                                                            res.send({
+                                                                error: error
+                                                            })
+                                                        } else {
+                                                            var notifySchema = {
+                                                                userId: schema.userId,
+                                                                message: tokenResult.username + ' has accepted your follow request.',
+                                                                respondentId: schema.responderId,
+                                                                type: 3,
+                                                                timestamp: Date.now()
+                                                            }
+                                                            Notification.create(notifySchema, (error: any, result: any) => {
+                                                                if (error) {
+                                                                    res.send({
+                                                                        error: error
+                                                                    })
+                                                                } else {
+                                                                    res.send({
+                                                                        message: 'User Accepted',
+                                                                        result: result,
+                                                                        follower: follower,
+                                                                        self: user,
+                                                                        responseCode: 1
+                                                                    })
+                                                                }
+                                                            });
+                                                        }
                                                     })
                                                 }
-                                            });
+                                            })
                                         }
                                     })
                                 }

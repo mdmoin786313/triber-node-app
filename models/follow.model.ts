@@ -17,6 +17,9 @@ const followSchema = mongoose.Schema({
     },
     block: {
         type: Boolean
+    },
+    mute: {
+        type: Boolean
     }
 })
 

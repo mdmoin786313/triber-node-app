@@ -21,7 +21,7 @@ export default class PostRoute {
     }
 
     mutePost(app: Express) {
-        app.post('/v1/mutepost', postController.mutePost);
+        app.post('/v1/mute', postController.mutePost);
     }
 
     likePost(app: Express) {
