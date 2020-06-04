@@ -58,27 +58,12 @@ class FollowController {
                                                             error: error
                                                         })
                                                     } else {
-                                                        var notifySchema = {
-                                                            userId: tokenResult.id,
-                                                            message: tokenResult.username + ' has requested to follow you.',
-                                                            respondentId: follow.responderId,
-                                                            type: 1,
-                                                            timestamp: Date.now()
-                                                        }
-                                                        Notification.create(notifySchema, (error: any, result: any) => {
-                                                            if (error) {
-                                                                res.send({
-                                                                    error: error
-                                                                })
-                                                            } else {
-                                                                res.send({
-                                                                    message: 'User Requested 1',
-                                                                    result: result,
-                                                                    follow: follow,
-                                                                    responseCode: 1
-                                                                })
-                                                            }
-                                                        });
+                                                        res.send({
+                                                            message: 'User Requested 1',
+                                                            result: result,
+                                                            follow: follow,
+                                                            responseCode: 1
+                                                        })
                                                     }
                                                 })
                                             } else {
@@ -108,13 +93,12 @@ class FollowController {
                                                                         })
                                                                     } else {
                                                                         var notifySchema = {
-                                                                            userId: tokenResult.id,
-                                                                            message: tokenResult.username + ' has started following you.',
-                                                                            respondentId: follow.responderId,
-                                                                            type: 2,
-                                                                            timestamp: Date.now()
+                                                                            userId: new ObjectId(tokenResult.id),
+                                                                            respondentId: user._id,
+                                                                            message: ' started following you.',
+                                                                            type: 3
                                                                         }
-                                                                        Notification.create(notifySchema, (error: any, result: any) => {
+                                                                        Notification.findOneAndUpdate(notifySchema, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, result: any) => {
                                                                             if (error) {
                                                                                 res.send({
                                                                                     error: error
@@ -151,27 +135,12 @@ class FollowController {
                                                                 error: error
                                                             })
                                                         } else {
-                                                            var notifySchema = {
-                                                                userId: tokenResult.id,
-                                                                message: tokenResult.username + ' has requested to follow you.',
-                                                                respondentId: schema.responderId,
-                                                                type: 1,
-                                                                timestamp: Date.now()
-                                                            }
-                                                            Notification.create(notifySchema, (error: any, result: any) => {
-                                                                if (error) {
-                                                                    res.send({
-                                                                        error: error
-                                                                    })
-                                                                } else {
-                                                                    res.send({
-                                                                        message: 'User Requested 2',
-                                                                        result: result,
-                                                                        follow: follow,
-                                                                        responseCode: 1
-                                                                    })
-                                                                }
-                                                            });
+                                                            res.send({
+                                                                message: 'User Requested 2',
+                                                                result: result,
+                                                                follow: follow,
+                                                                responseCode: 1
+                                                            })
                                                         }
                                                     })
                                                 } else if (user.public == true && result.followStatus == 0) {
@@ -200,13 +169,12 @@ class FollowController {
                                                                                     })
                                                                                 } else {
                                                                                     var notifySchema = {
-                                                                                        userId: tokenResult.id,
-                                                                                        message: tokenResult.username + ' has started following you.',
-                                                                                        respondentId: schema.responderId,
-                                                                                        type: 2,
-                                                                                        timestamp: Date.now()
+                                                                                        userId: new ObjectId(tokenResult.id),
+                                                                                        respondentId: user._id,
+                                                                                        message: ' started following you.',
+                                                                                        type: 3
                                                                                     }
-                                                                                    Notification.create(notifySchema, (error: any, result: any) => {
+                                                                                    Notification.findOneAndUpdate(notifySchema, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, result: any) => {
                                                                                         if (error) {
                                                                                             res.send({
                                                                                                 error: error

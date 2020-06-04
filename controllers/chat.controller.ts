@@ -17,67 +17,55 @@ class ChatController {
                         error: error
                     })
                 } else {
-                    var schema = {
+                    var schema1 = {
                         senderId: tokenResult.id,
                         recieverId: req.body.recieverId
                     }
+                    var schema2 = {
+                        senderId: req.body.recieverId,
+                        recieverId: tokenResult.id
+                    }
                     Chat.aggregate([
                         {
-                            '$lookup': {
-                                'from': 'chats',
-                                // 'let': {
-                                //     senderId: '$tokenResult.id',
-                                //     recieverId: '$req.body.recieverId'
-                                // },
-                                'pipeline': [{
-                                    '$match': {
-                                        '$expr': {
-                                            '$and':
-                                                [
-                                                    {
-                                                        '$eq': ['$senderId', tokenResult.id]
-                                                    },
-                                                    {
-                                                        '$eq': ['$recieverId', req.body.recieverId]
-                                                    },
-                                                ]
-
-                                        }
-                                    }
-                                }],
-                                'as': 'send'
+                            '$match': {
+                                'senderId': new ObjectId(tokenResult.id),
+                                'recieverId': new ObjectId(req.body.recieverId)
                             }
                         },
                         // {
-                        //     $lookup: {
+                        //     '$lookup': {
                         //         'from': 'chats',
+                        //         'let': {
+                        //             senderId: '$recieverId',
+                        //             recieverId: '$senderId'
+                        //         },
                         //         'pipeline': [{
                         //             '$match': {
                         //                 '$expr': {
                         //                     '$and':
                         //                         [
                         //                             {
-                        //                                 '$eq': ['$senderId', req.body.recieverId]
+                        //                                 '$eq': ['$senderId', '$$senderId']
                         //                             },
                         //                             {
-                        //                                 '$eq': ['$recieverId', tokenResult.id]
-                        //                             },
+                        //                                 '$eq': ['$recieverId', '$$recieverId']
+                        //                             }
                         //                         ]
-
                         //                 }
                         //             }
                         //         }],
                         //         'as': 'recieved'
                         //     }
                         // },
-                        {
-                            '$unwind': {
-                                path: '$send'
-                            }
-                        },
                         // {
                         //     '$unwind': {
                         //         path: '$recieved'
+                        //     }
+                        // },
+                        // {
+                        //     '$project': {
+                        //         'send': '$result',
+                        //         'recieved': '$recieved'
                         //     }
                         // }
                     ], (error: any, result: any) => {
@@ -87,8 +75,9 @@ class ChatController {
                             })
                         } else {
                             res.send({
-                                message: 'Chats',
-                                result: result
+                                message: 'messages',
+                                result: result,
+                                responseCode: 1
                             })
                         }
                     })
@@ -124,7 +113,8 @@ class ChatController {
                         } else {
                             res.send({
                                 message: 'Message Sent',
-                                result: result
+                                result: result,
+                                responseCode: 1
                             })
                         }
                     })

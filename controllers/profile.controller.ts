@@ -2,6 +2,7 @@ import Auth from "../models/auth.model";
 import { ObjectId } from "mongodb";
 import uploadMulter from "../config/multer.config";
 import Follow from "../models/follow.model";
+let bcrypt = require('bcrypt');
 
 let jwt = require('jsonwebtoken');
 
@@ -103,7 +104,7 @@ class ProfileController {
                                                 })
                                             }
                                         })
-                                        
+
                                     }
                                 })
                             }
@@ -164,25 +165,70 @@ class ProfileController {
                                 error: error
                             })
                         } else {
-                            const schema = {
-                                username: req.body.username,
-                                fullname: req.body.fullname,
-                                bio: req.body.bio,
-                                email: req.body.email,
-                                phone: req.body.phone
-                            }
-                            Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
-                                if (error) {
-                                    res.send({
-                                        error: error
-                                    })
-                                } else {
-                                    res.send({
-                                        message: 'Updated',
-                                        result: result
-                                    })
+                            if (req.body.oldPassword != null && req.body.newPassword != null) {
+                                Auth.findOne({ _id: tokenResult.id }, (error: any, user: any) => {
+                                    if (error) {
+                                        res.send({
+                                            error: error
+                                        })
+                                    } else {
+                                        bcrypt.compare(req.body.oldPassword, user.password, (error: any, match: any) => {
+                                            if (error) throw error;
+                                            if (match) {
+                                                bcrypt.hash(req.body.newPassword, 10, (error: any, hash: any) => {
+                                                    if (error) {
+                                                        throw error;
+                                                    } else {
+                                                        const schema = {
+                                                            username: req.body.username,
+                                                            fullname: req.body.fullname,
+                                                            bio: req.body.bio,
+                                                            password: hash
+                                                        }
+                                                        Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, {new: true}, (error: any, result: any) => {
+                                                            if (error) {
+                                                                res.send({
+                                                                    error: error
+                                                                })
+                                                            } else {
+                                                                res.send({
+                                                                    message: 'Updated',
+                                                                    result: result,
+                                                                    responseCode: 1
+                                                                })
+                                                            }
+                                                        })
+                                                    }
+                                                })
+                                            } else {
+                                                res.send({
+                                                    message: 'Password Mismatch',
+                                                    responseCode: 2
+                                                })
+                                            }
+                                        })
+                                    }
+                                })
+                            } else {
+                                const schema = {
+                                    username: req.body.username,
+                                    fullname: req.body.fullname,
+                                    bio: req.body.bio,
                                 }
-                            })
+                                Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
+                                    if (error) {
+                                        res.send({
+                                            error: error
+                                        })
+                                    } else {
+                                        res.send({
+                                            message: 'Updated',
+                                            result: result,
+                                            responseCode: 1
+                                        })
+                                    }
+                                })
+                            }
                         }
                     })
                 }
@@ -199,26 +245,72 @@ class ProfileController {
                                 error: error
                             })
                         } else {
-                            const schema = {
-                                username: req.body.username,
-                                fullname: req.body.fullname,
-                                bio: req.body.bio,
-                                profileImage: req.file.path,
-                                email: req.body.email,
-                                phone: req.body.phone
-                            }
-                            Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
-                                if (error) {
-                                    res.send({
-                                        error: error
-                                    })
-                                } else {
-                                    res.send({
-                                        message: 'Updated',
-                                        result: result
-                                    })
+                            if (req.body.oldPassword != null && req.body.newPassword != null) {
+                                Auth.findOne({ _id: tokenResult.id }, (error: any, user: any) => {
+                                    if (error) {
+                                        res.send({
+                                            error: error
+                                        })
+                                    } else {
+                                        bcrypt.compare(req.body.oldPassword, user.password, (error: any, match: any) => {
+                                            if (error) throw error;
+                                            if (match) {
+                                                bcrypt.hash(req.body.newPassword, 10, (error: any, hash: any) => {
+                                                    if (error) {
+                                                        throw error;
+                                                    } else {
+                                                        const schema = {
+                                                            username: req.body.username,
+                                                            fullname: req.body.fullname,
+                                                            bio: req.body.bio,
+                                                            profileImage: req.body.profileImage,                                                            
+                                                            password: hash
+                                                        }
+                                                        Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
+                                                            if (error) {
+                                                                res.send({
+                                                                    error: error
+                                                                })
+                                                            } else {
+                                                                res.send({
+                                                                    message: 'Updated',
+                                                                    result: result,
+                                                                    responseCode: 1
+                                                                })
+                                                            }
+                                                        })
+                                                    }
+                                                })
+                                            } else {
+                                                res.send({
+                                                    message: 'Password Mismatch',
+                                                    responseCode: 2
+                                                })
+                                            }
+                                        })
+                                    }
+                                })
+                            } else {
+                                const schema = {
+                                    username: req.body.username,
+                                    fullname: req.body.fullname,
+                                    bio: req.body.bio,
+                                    profileImage: req.body.profileImage,
                                 }
-                            })
+                                Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
+                                    if (error) {
+                                        res.send({
+                                            error: error
+                                        })
+                                    } else {
+                                        res.send({
+                                            message: 'Updated',
+                                            result: result,
+                                            responseCode: 1
+                                        })
+                                    }
+                                })
+                            }
                         }
                     })
                 }

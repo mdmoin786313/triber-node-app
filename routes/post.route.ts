@@ -20,6 +20,14 @@ export default class PostRoute {
         app.post('/v1/archivepost', postController.archivePost);
     }
 
+    selfPosts(app: Express) {
+        app.post('/v1/selfposts', postController.selfPosts);
+    }
+
+    singlePost(app: Express) {
+        app.post('/v1/singlePost', postController.singlePost);
+    }
+
     mutePost(app: Express) {
         app.post('/v1/mute', postController.mutePost);
     }
@@ -55,5 +63,7 @@ export default class PostRoute {
         this.commentPost(app);
         this.commentsOnPost(app);
         this.bookmarkPost(app);
+        this.selfPosts(app);
+        this.singlePost(app);
     }
 }

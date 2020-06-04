@@ -7,6 +7,7 @@ import FollowRoute from './routes/follow.route';
 import ChatRoute from "./routes/chat.route";
 import SettingsRoute from "./routes/settings.route";
 import OTPRoute from "./routes/otp.route";
+import NotificationRoute from "./routes/notification.route";
 
 const app = express();
 var port = process.env.PORT || 3000;
@@ -16,7 +17,8 @@ var cookieParser = require("cookie-parser");
 var mongoose = require('./config/mongoose.config');
 var swagger = require('./routes/swagger.route');
 
-// var io = require("socket.io")(app);
+const server = require('http').createServer(app)
+var io = require("socket.io").listen(server);
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
@@ -39,19 +41,28 @@ const settingsRoute = new SettingsRoute();
 settingsRoute.settingsRoute(app);
 const otpRoute = new OTPRoute();
 otpRoute.otpRoute(app);
+const notificationRoute = new NotificationRoute();
+notificationRoute.notificationRoute(app);
 
-// io.on('connection', (socket: any) => {
-//     console.log('a user connected');
-//     socket.on('send chat', (message: any) => {
-//         console.log(message);
-//         io.emit('send chat', message);
-//     })
-// })
+io.on('connection', (socket: any) => {
+    console.log('a user connected');
+    socket.on('send chat', (message: any) => {
+        console.log(message);
+        io.emit('send chat', message);
+    })
+
+    socket.on('disconnect', () => {
+        console.log('User Left');
+        io.emit('disconnect');
+    })
+
+    
+})
 
 app.use('/', swagger);
 
 // io.on("connection", (socket: any) => s
 
-app.listen(port, () => console.log(`Listening on port ${port}`));
+server.listen(port, () => console.log(`Listening on port ${port}`));
 
 module.exports = app;

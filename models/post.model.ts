@@ -41,6 +41,13 @@ const postSchema = mongoose.Schema({
     },
     archived: {
         type: Boolean
+    },
+    data: {
+        type: String
+    },
+    img: {
+        data: { type: Buffer },
+        contentType: { type: String }
     }
 })
 

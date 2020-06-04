@@ -7,6 +7,7 @@ import Bookmark from '../models/bookmark.model';
 import Follow from '../models/follow.model';
 import { ObjectId } from 'mongodb';
 import uploadMulter from '../config/multer.config';
+import Notification from '../models/notification.model';
 let jwt = require('jsonwebtoken');
 var fs = require('fs');
 var path = require('path');
@@ -20,7 +21,8 @@ class PostController {
                 })
             } else if (!req.file) {
                 res.send({
-                    message: 'File Not Found!'
+                    message: 'File Not Found!',
+                    responseCode: 2
                 })
             } else {
                 var token = req.headers.token;
@@ -29,6 +31,11 @@ class PostController {
                         message: 'No Token Found'
                     })
                 } else {
+                    // var img = fs.readFileSync(req.file.path);
+                    // var finalImg = {
+                    //     contentType: 'image/jpg',
+                    //     data: new Buffer(img).toString('base64')
+                    // }
                     jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
                         if (error) throw error;
                         console.log(req.file);
@@ -37,6 +44,7 @@ class PostController {
                             postImage: req.file.filename,
                             caption: req.body.caption,
                             location: req.body.location,
+                            data: req.body.data,
                             tags: req.body.tags,
                             likes: 0,
                             superLikes: 0,
@@ -53,20 +61,30 @@ class PostController {
                                     error: error
                                 })
                             } else {
-                                Auth.findOneAndUpdate({ _id: tokenResult.id }, { posts: tokenResult.postCount + 1 }, (error: any, result: any) => {
+                                Auth.findOne({ _id: new ObjectId(tokenResult.id) }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
                                         })
                                     } else {
-                                        res.send({
-                                            message: 'Post Created!',
-                                            post: post,
-                                            result: result,
-                                            file: req.file
+                                        Auth.findOneAndUpdate({ _id: new ObjectId(tokenResult.id) }, { postCount: result.postCount + 1 }, { new: true }, (error: any, result: any) => {
+                                            if (error) {
+                                                res.send({
+                                                    error: error
+                                                })
+                                            } else {
+                                                res.send({
+                                                    message: 'Post Created!',
+                                                    post: post,
+                                                    result: result,
+                                                    file: req.file,
+                                                    responseCode: 1
+                                                })
+                                            }
                                         })
                                     }
                                 })
+
                             }
                         })
                     })
@@ -95,6 +113,14 @@ class PostController {
                                 'userId': new ObjectId(tokenResult.id),
                                 'followStatus': 2,
                                 'mute': false
+                            }
+                        },
+                        {
+                            '$lookup': {
+                                'from': 'auths',
+                                'localField': 'userId',
+                                'foreignField': '_id',
+                                'as': 'self'
                             }
                         },
                         {
@@ -133,7 +159,11 @@ class PostController {
                                 'as': 'posts'
                             }
                         },
-
+                        {
+                            '$unwind': {
+                                path: '$self'
+                            }
+                        },
                         {
                             '$unwind': {
                                 path: '$user'
@@ -213,6 +243,87 @@ class PostController {
                         } else {
                             res.send({
                                 message: 'Posts',
+                                result: result,
+                                responseCode: 1
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    }
+
+    selfPosts(req: any, res: any) {
+        var token = req.headers.token;
+        if (!token) {
+            res.send({
+                message: 'No Token Found'
+            })
+        } else {
+            jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
+                if (error) {
+                    res.send({
+                        error: error
+                    })
+                } else {
+                    Post.find({ userId: new ObjectId(req.body.userId), deleted: false, archived: false }, (error: any, result: any) => {
+                        if (error) {
+                            res.send({
+                                error: error
+                            })
+                        } else {
+                            res.send({
+                                message: 'Posts',
+                                result: result,
+                                responseCode: 1
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    }
+
+    singlePost(req: any, res: any) {
+        var token = req.headers.token;
+        if (!token) {
+            res.send({
+                message: 'No Token Found'
+            })
+        } else {
+            jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
+                if (error) {
+                    res.send({
+                        error: error
+                    })
+                } else {
+                    Post.aggregate([
+                        {
+                            '$match': {
+                                '_id': new ObjectId(req.body.postId)
+                            }
+                        },
+                        {
+                            '$lookup': {
+                                'from': 'auths',
+                                'localField': 'userId',
+                                'foreignField': '_id',
+                                'as': 'user'
+                            }
+                        },
+                        {
+                            '$unwind': {
+                                path: '$user'
+                            }
+                        },
+                    ], (error: any, result: any) => {
+                        if (error) {
+                            res.send({
+                                error: error
+                            })
+                        } else {
+                            res.send({
+                                message: 'Post',
                                 result: result,
                                 responseCode: 1
                             })
@@ -388,12 +499,21 @@ class PostController {
                                                         error: error
                                                     })
                                                 } else {
-                                                    res.send({
-                                                        message: 'Liked',
-                                                        result: result,
-                                                        like: like,
-                                                        responseCode: 1
+                                                    Notification.findOneAndUpdate({
+                                                        userId: new ObjectId(tokenResult.id),
+                                                        respondentId: result.userId,
+                                                        postId: result._id,
+                                                        message: ' liked your post',
+                                                        type: 1
+                                                    }, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, notify: any) => {
+                                                        res.send({
+                                                            message: 'Liked',
+                                                            result: result,
+                                                            like: like,
+                                                            responseCode: 1
+                                                        })
                                                     })
+
                                                 }
                                             })
                                         }
@@ -420,12 +540,21 @@ class PostController {
                                                             error: error
                                                         })
                                                     } else {
-                                                        res.send({
-                                                            message: 'Liked',
-                                                            result: result,
-                                                            like: like,
-                                                            responseCode: 1
+                                                        Notification.findOneAndUpdate({
+                                                            userId: new ObjectId(tokenResult.id),
+                                                            respondentId: result.userId,
+                                                            postId: result._id,
+                                                            message: ' liked your post',
+                                                            type: 1
+                                                        }, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, notify: any) => {
+                                                            res.send({
+                                                                message: 'Liked',
+                                                                result: result,
+                                                                like: like,
+                                                                responseCode: 1
+                                                            })
                                                         })
+
                                                     }
                                                 })
                                             }
@@ -482,12 +611,21 @@ class PostController {
                                                             error: error
                                                         })
                                                     } else {
-                                                        res.send({
-                                                            message: 'Liked',
-                                                            result: result,
-                                                            like: like,
-                                                            responseCode: 1
+                                                        Notification.findOneAndUpdate({
+                                                            userId: new ObjectId(tokenResult.id),
+                                                            respondentId: result.userId,
+                                                            postId: result._id,
+                                                            message: ' liked your post',
+                                                            type: 1
+                                                        }, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, notify: any) => {
+                                                            res.send({
+                                                                message: 'Liked',
+                                                                result: result,
+                                                                like: like,
+                                                                responseCode: 1
+                                                            })
                                                         })
+
                                                     }
                                                 })
                                             }
@@ -545,12 +683,21 @@ class PostController {
                                                         error: error
                                                     })
                                                 } else {
-                                                    res.send({
-                                                        message: 'SuperLiked',
-                                                        result: result,
-                                                        superLike: superLike,
-                                                        responseCode: 1
+                                                    Notification.findOneAndUpdate({
+                                                        userId: new ObjectId(tokenResult.id),
+                                                        respondentId: result.userId,
+                                                        postId: result._id,
+                                                        message: ' superliked your post',
+                                                        type: 1
+                                                    }, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, notify: any) => {
+                                                        res.send({
+                                                            message: 'SuperLiked',
+                                                            result: result,
+                                                            superLike: superLike,
+                                                            responseCode: 1
+                                                        })
                                                     })
+
                                                 }
                                             })
                                         }
@@ -577,11 +724,19 @@ class PostController {
                                                             error: error
                                                         })
                                                     } else {
-                                                        res.send({
-                                                            message: 'SuperLiked',
-                                                            result: result,
-                                                            superLike: superLike,
-                                                            responseCode: 1
+                                                        Notification.findOneAndUpdate({
+                                                            userId: new ObjectId(tokenResult.id),
+                                                            respondentId: result.userId,
+                                                            postId: result._id,
+                                                            message: ' superliked your post',
+                                                            type: 1
+                                                        }, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, notify: any) => {
+                                                            res.send({
+                                                                message: 'SuperLiked',
+                                                                result: result,
+                                                                superLike: superLike,
+                                                                responseCode: 1
+                                                            })
                                                         })
                                                     }
                                                 })
@@ -639,12 +794,21 @@ class PostController {
                                                             error: error
                                                         })
                                                     } else {
-                                                        res.send({
-                                                            message: 'SuperLiked',
-                                                            result: result,
-                                                            superLike: superLike,
-                                                            responseCode: 1
+                                                        Notification.findOneAndUpdate({
+                                                            userId: new ObjectId(tokenResult.id),
+                                                            respondentId: result.userId,
+                                                            postId: result._id,
+                                                            message: ' superliked your post',
+                                                            type: 1
+                                                        }, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, notify: any) => {
+                                                            res.send({
+                                                                message: 'SuperLiked',
+                                                                result: result,
+                                                                superLike: superLike,
+                                                                responseCode: 1
+                                                            })
                                                         })
+
                                                     }
                                                 })
                                             }
@@ -698,12 +862,22 @@ class PostController {
                                                 error: error
                                             })
                                         } else {
-                                            res.send({
-                                                message: 'Commented',
-                                                comment: comment,
-                                                result: result,
-                                                responseCode: 1
+                                            Notification.findOneAndUpdate({
+                                                userId: new ObjectId(tokenResult.id),
+                                                respondentId: result.userId,
+                                                postId: result._id,
+                                                message: ' commented on your post: ',
+                                                comment: comment.comment,
+                                                type: 2
+                                            }, { timestamp: Date.now() }, { upsert: true, new: true, setDefaultsOnInsert: true }, (error: any, notify: any) => {
+                                                res.send({
+                                                    message: 'Commented',
+                                                    comment: comment,
+                                                    result: result,
+                                                    responseCode: 1
+                                                })
                                             })
+
                                         }
                                     })
                                 }

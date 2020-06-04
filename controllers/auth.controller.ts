@@ -60,7 +60,7 @@ export default class AuthController {
                             followersCount: 0,
                             followingCount: 0,
                             postCount: 0,
-                            profileImage: 'https://assets.medcampus.io/assets/images/default-avatar.png',
+                            // profileImage: 'https://assets.medcampus.io/assets/images/default-avatar.png',
                             timestamp: Date.now()
                         }
                         Auth.create(schema, (error: any, resultUser: any) => {
@@ -172,6 +172,25 @@ export default class AuthController {
                 )
             }
         })
+    }
+
+    logout(req: any, res: any) {
+        var token = req.headers.token;
+        if (!token) {
+            res.send({
+                message: 'No Token Found'
+            })
+        } else {
+            jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
+                if (error) {
+                    res.send({
+                        error: error
+                    })
+                } else {
+                    
+                }
+            })
+        }
     }
 
     verifyToken(req: any, res: any) {

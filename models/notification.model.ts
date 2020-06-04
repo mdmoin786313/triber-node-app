@@ -12,8 +12,14 @@ const notificationSchema = mongoose.Schema({
     respondentId: {
         type: ObjectId
     },
+    postId: {
+        type: ObjectId
+    },
     type: {
         type: Number
+    },
+    comment: {
+        type: String
     },
     timestamp: {
         type: Date
