@@ -9,5 +9,5 @@ const storage = multer.diskStorage({
     }
 })
 
-var upload = multer({ storage: storage }).single('postImage');
+var upload = multer({ storage: storage }).single('image');
 export default upload;

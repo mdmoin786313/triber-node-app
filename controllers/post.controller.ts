@@ -5,6 +5,7 @@ import Mute from '../models/mute.model';
 import Like from '../models/like.model';
 import Comment from '../models/comment.model';
 import Bookmark from '../models/bookmark.model';
+import { ObjectId } from 'bson';
 let jwt = require('jsonwebtoken');
 var fs = require('fs');
 var path = require('path');
@@ -65,6 +66,61 @@ class PostController {
             }
         }
         )
+    }
+
+    getPosts(req: any, res: any) {
+        var token = req.headers.token;
+        if (!token) {
+            return res.send({
+                message: 'No Token Found'
+            })
+        } else {
+            jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
+                if (error) {
+                    return res.send({
+                        error: error
+                    })
+                } else {
+                    Post.aggregate([
+                        {
+                            $lookup: {
+                                'from': 'auths',
+                                'localField': 'userId',
+                                'foreignField': '_id',
+                                'as': 'user'
+                            }
+                        },
+                        {
+                            $lookup: {
+                                'from': 'likes',
+                                // 'let': { userId: `${tokenResult.id}`, postId: '$_id' },
+                                'pipeline': [
+                                    {
+                                        '$match': {
+                                            userId: new ObjectId(tokenResult.id),
+                                            postId: '$_id'
+                                        }
+                                    }
+                                ],
+                                'as': 'like'
+                            }
+                        }
+                    ], (error: any, result: any) => {
+                        if (error) {
+                            return res.send({
+                                error: error
+                            })
+                        } else {
+                            return res.send({
+                                message: 'Posts',
+                                result: result,
+                                responseCode: 2000
+                            })
+                        }
+                    })
+                }
+            })
+        }
     }
 
     deletePost(req: any, res: any) {
@@ -193,14 +249,14 @@ class PostController {
                         error: error
                     })
                 } else {
-                    Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult._id }, (error: any, result: any) => {
+                    Like.findOne({ postId: req.body.postId, userId: tokenResult.id }, (error: any, result: any) => {
                         if (error) {
                             res.send({
                                 error: error
                             })
-                        } else if (result == 0) {
+                        } else if (result == null) {
                             const schema = {
-                                userId: tokenResult._id,
+                                userId: tokenResult.id,
                                 postId: req.body.postId,
                                 like: true,
                                 likeTimestamp: Date.now()

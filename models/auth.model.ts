@@ -25,28 +25,41 @@ const authSchema = mongoose.Schema({
         type: String,
     },
     followersCount: {
-        type: Number
+        type: Number,
+        required: true,
+        default: 0
     },
     followingCount: {
-        type: Number
+        type: Number,
+        required: true,
+        default: 0
     },
     postCount: {
-        type: Number
+        type: Number,
+        required: true,
+        default: 0
     },
     bio: {
-        type: String
+        type: String,
+        default: 'Hey there! I am using Triber!',
+        required: true,
     },
     profileLikes: {
-        type: Number
+        type: Number,
+        default: 0
     },
     publicProfile: {
-        type: Boolean
+        type: Boolean,
+        default: true
     },
     profileVerified: {
-        type: Boolean
+        type: Boolean,
+        default: false
     },
     timestamp: {
-        type: Date
+        type: Date,
+        required: true,
+        default: Date.now()
     }
 })
 

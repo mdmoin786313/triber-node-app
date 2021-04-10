@@ -32,8 +32,9 @@ export default class AuthController {
                 })
             } else if (len > 0) {
                 res.send({
-                    message: "Phone already Registered",
-                    result: result
+                    message: "Username/Phone already Registered",
+                    result: result,
+                    responseCode: 2001
                 })
             } else {
                 bcrypt.hash(req.body.password, 10, (error: any, hash: any) => {
@@ -45,7 +46,8 @@ export default class AuthController {
                             username: req.body.username,
                             password: userPass,
                             fullname: req.body.fullname,
-                            phone: req.body.phone
+                            phone: req.body.phone,
+                            profileImage: 'https://cdn.imgbin.com/6/25/24/imgbin-user-profile-computer-icons-user-interface-mystique-aBhn3R8cmqmP4ECky4DA3V88y.jpg'
                         }
                         Auth.create(schema, (error: any, resultUser: any) => {
                             if (error) {
@@ -60,13 +62,15 @@ export default class AuthController {
                                     fullname: resultUser.fullname,
                                     phone: resultUser.phone,
                                     password: resultUser.password,
+                                    profileImage: 'https://cdn.imgbin.com/6/25/24/imgbin-user-profile-computer-icons-user-interface-mystique-aBhn3R8cmqmP4ECky4DA3V88y.jpg'
                                 }
                                 jwt.sign(jwtSchema, 'moin1234', (error: any, result: any) => {
                                     if (error) throw error;
                                     res.send({
                                         message: 'User Created',
                                         token: result,
-                                        user: resultUser
+                                        user: resultUser,
+                                        responseCode: 2000
                                     })
                                 })
                             }
@@ -85,6 +89,12 @@ export default class AuthController {
                     error: error
                 })
             } else {
+                if (result == null) {
+                    return res.send({
+                        message: 'Invalid Credentials',
+                        responseCode: 0
+                    })
+                }
                 bcrypt.compare(req.body.password, result.password, (error: any, match: any) => {
                     if (error) throw error;
                     if (match) {

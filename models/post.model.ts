@@ -19,28 +19,44 @@ const postSchema = mongoose.Schema({
         type: Object
     },
     likes: {
-        type: Number
+        type: Number,
+        default: 0,
+        required: true,
     },
     superLikes: {
-        type: Number
+        type: Number,
+        default: 0,
+        required: true,
     },
     comments: {
-        type: Number
+        type: Number,
+        default: 0,
+        required: true,
     },
     shares: {
-        type: Number
+        type: Number,
+        default: 0,
+        required: true,
     },
     bookmarks: {
-        type: Number
+        type: Number,
+        default: 0,
+        required: true,
     },
     timestamp: {
-        type: Date
+        type: Date,
+        default: Date.now(),
+        required: true,
     },
     deleted: {
-        type: Boolean
+        type: Boolean,
+        default: false,
+        required: true,
     },
     archived: {
-        type: Boolean
+        type: Boolean,
+        default: false,
+        required: true,
     }
 })
 

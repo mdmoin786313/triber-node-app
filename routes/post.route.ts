@@ -8,6 +8,14 @@ export default class PostRoute {
         app.post('/v1/postimage', postController.postImage);
     }
 
+    like(app: Express) {
+        app.post('/v1/like', postController.likePost);
+    }
+
+    getPosts(app: Express) {
+        app.get('/v1/posts', postController.getPosts);
+    }
+
     deletePost(app: Express) {
         app.post('/v1/deletepost', postController.deletePost);
     }
@@ -22,8 +30,10 @@ export default class PostRoute {
 
     postRoute(app: Express) {
         this.postImage(app);
+        this.getPosts(app);
         this.deletePost(app);
         this.archivePost(app);
         this.mutePost(app);
+        this.like(app);
     }
 }
