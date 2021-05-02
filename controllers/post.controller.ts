@@ -34,7 +34,7 @@ class PostController {
                         console.log(req.file);
                         const schema = {
                             userId: tokenResult.id,
-                            postImage: req.file.path,
+                            postImage: req.file.filename,
                             caption: req.body.caption,
                             location: req.body.location,
                             tags: req.body.tags,
@@ -93,17 +93,21 @@ class PostController {
                         },
                         {
                             $lookup: {
-                                'from': 'likes',
-                                // 'let': { userId: `${tokenResult.id}`, postId: '$_id' },
-                                'pipeline': [
+                                from: 'likes',
+                                let: {  },
+                                pipeline: [
                                     {
-                                        '$match': {
-                                            userId: mongoose.Types.ObjectId(tokenResult.id),
-                                            postId: '$_id'
+                                        $match: {
+                                            $expr: {
+                                                $and: [
+                                                    { $eq: ['_id', '$_id'] },
+                                                    { $eq: [mongoose.Types.ObjectId(tokenResult.id), '$userId'] },
+                                                ]
+                                            }
                                         }
                                     }
                                 ],
-                                'as': 'like'
+                                as: 'like'
                             }
                         },
                         // {

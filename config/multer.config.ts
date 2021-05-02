@@ -1,11 +1,12 @@
 let multer = require('multer');
+var path = require('path');
 
 const storage = multer.diskStorage({
     destination: (req: any, file: any, cb: any) => {
-        cb(null, './images/');
+        cb(null, '../../React-Native/triber/public/');
     },
     filename: (req: any, file: any, cb: any) => {
-        cb(null, file.fieldname + '-' + Date.now())
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
     }
 })
 
