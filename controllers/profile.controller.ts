@@ -102,7 +102,7 @@ class ProfileController {
                                 email: req.body.email,
                                 phone: req.body.phone
                             }
-                            Auth.findOneAndUpdate({ _id: tokenResult._id }, schema, (error: any, result: any) => {
+                            Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
@@ -138,7 +138,7 @@ class ProfileController {
                                 email: req.body.email,
                                 phone: req.body.phone
                             }
-                            Auth.findOneAndUpdate({ _id: tokenResult._id }, schema, (error: any, result: any) => {
+                            Auth.findOneAndUpdate({ _id: tokenResult.id }, schema, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error

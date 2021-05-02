@@ -18,7 +18,7 @@ class FollowController {
                     })
                 } else {
                     var schema = {
-                        userId: tokenResult._id,
+                        userId: tokenResult.id,
                         responderId: req.body.responderId,
                         followStatus: 1,
                         timestamp: Date.now()
@@ -49,7 +49,7 @@ class FollowController {
                                     })
                                 } else {
                                     var schema = {
-                                        userId: tokenResult._id,
+                                        userId: tokenResult.id,
                                         responderId: req.body.responderId,
                                         followStatus: 2,
                                         timestamp: Date.now()
@@ -183,7 +183,7 @@ class FollowController {
                     })
                 } else {
                     var schema = {
-                        userId: tokenResult._id,
+                        userId: tokenResult.id,
                         responderId: req.body.responderId,
                         block: true,
                         timestamp: Date.now()
@@ -241,7 +241,7 @@ class FollowController {
                 } else {
                     var schema = {
                         userId: req.body.userId,
-                        responderId: tokenResult._id,
+                        responderId: tokenResult.id,
                         followStatus: 1
                     }
                     Follow.findOneAndUpdate(schema, { followStatus: 2, timestamp: Date.now() }, (error: any, result: any) => {

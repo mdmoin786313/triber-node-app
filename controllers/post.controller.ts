@@ -9,6 +9,7 @@ import { ObjectId } from 'bson';
 let jwt = require('jsonwebtoken');
 var fs = require('fs');
 var path = require('path');
+import mongoose from 'mongoose';
 
 class PostController {
     postImage(req: any, res: any) {
@@ -45,7 +46,7 @@ class PostController {
                                     error: error
                                 })
                             } else {
-                                Auth.findOneAndUpdate({ _id: tokenResult._id }, { posts: tokenResult.posts + 1 }, (error: any, result: any) => {
+                                Auth.findOneAndUpdate({ _id: tokenResult.id }, { posts: tokenResult.posts + 1 }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -97,14 +98,19 @@ class PostController {
                                 'pipeline': [
                                     {
                                         '$match': {
-                                            userId: new ObjectId(tokenResult.id),
+                                            userId: mongoose.Types.ObjectId(tokenResult.id),
                                             postId: '$_id'
                                         }
                                     }
                                 ],
                                 'as': 'like'
                             }
-                        }
+                        },
+                        // {
+                        //     $unwind: {
+                        //         path: '$like'
+                        //     }
+                        // }
                     ], (error: any, result: any) => {
                         if (error) {
                             return res.send({
@@ -136,7 +142,7 @@ class PostController {
                         error: error
                     })
                 } else {
-                    Post.findOneAndUpdate({ _id: req.body.postId, userId: tokenResult._id }, { deleted: true }, (error: any, result: any) => {
+                    Post.findOneAndUpdate({ _id: req.body.postId, userId: tokenResult.id }, { deleted: true }, (error: any, result: any) => {
                         if (error) {
                             res.send({
                                 error: error
@@ -166,7 +172,7 @@ class PostController {
                         error: error
                     })
                 } else {
-                    Post.findOneAndUpdate({ _id: req.body.postId, userId: tokenResult._id }, { archived: true }, (error: any, result: any) => {
+                    Post.findOneAndUpdate({ _id: req.body.postId, userId: tokenResult.id }, { archived: true }, (error: any, result: any) => {
                         if (error) {
                             res.send({
                                 error: error
@@ -204,7 +210,7 @@ class PostController {
                                 error: error
                             })
                         } else if (result == 0) {
-                            Mute.create({ subjectId: req.body.postId, userId: tokenResult._id, mute: true, type: 1 }, (error: any, result: any) => {
+                            Mute.create({ subjectId: req.body.postId, userId: tokenResult.id, mute: true, type: 1 }, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
@@ -217,7 +223,7 @@ class PostController {
                                 }
                             })
                         } else {
-                            Mute.findOneAndUpdate({ subjectId: req.body.postId, userId: tokenResult._id }, { mute: !result.mute }, (error: any, result: any) => {
+                            Mute.findOneAndUpdate({ subjectId: req.body.postId, userId: tokenResult.id }, { mute: !result.mute }, (error: any, result: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
@@ -249,7 +255,7 @@ class PostController {
                         error: error
                     })
                 } else {
-                    Like.findOne({ postId: req.body.postId, userId: tokenResult.id }, (error: any, result: any) => {
+                    Like.findOne({ postId: mongoose.Types.ObjectId(req.body.postId), userId: mongoose.Types.ObjectId(tokenResult.id) }, (error: any, result: any) => {
                         if (error) {
                             res.send({
                                 error: error
@@ -267,13 +273,13 @@ class PostController {
                                         error: error
                                     })
                                 } else {
-                                    Post.findOne({ _id: req.body.postId }, (error: any, result: any) => {
+                                    Post.findOne({ _id: mongoose.Types.ObjectId(req.body.postId) }, (error: any, result: any) => {
                                         if (error) {
                                             res.send({
                                                 error: error
                                             })
                                         } else {
-                                            Post.findOneAndUpdate({ _id: req.body.postId }, { likes: result.likes + 1 }, (error: any, result: any) => {
+                                            Post.findOneAndUpdate({ _id: mongoose.Types.ObjectId(req.body.postId) }, { likes: result.likes + 1 }, (error: any, result: any) => {
                                                 if (error) {
                                                     res.send({
                                                         error: error
@@ -291,19 +297,19 @@ class PostController {
                             })
                         } else {
                             if (result.like == false) {
-                                Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult._id }, { like: !result.like, likeTimestamp: Date.now() }, { new: true }, (error: any, result: any) => {
+                                Like.findOneAndUpdate({ postId: mongoose.Types.ObjectId(req.body.postId), userId: mongoose.Types.ObjectId(tokenResult.id) }, { like: !result.like }, { new: true }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
                                         })
                                     } else {
-                                        Post.findOne({ _id: req.body.postId }, (error: any, result: any) => {
+                                        Post.findOne({ _id: mongoose.Types.ObjectId(req.body.postId) }, (error: any, result: any) => {
                                             if (error) {
                                                 res.send({
                                                     error: error
                                                 })
                                             } else {
-                                                Post.findOneAndUpdate({ _id: req.body.postId }, { likes: result.likes + 1 }, (error: any, result: any) => {
+                                                Post.findOneAndUpdate({ _id: mongoose.Types.ObjectId(req.body.postId) }, { likes: result.likes + 1 }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -320,19 +326,19 @@ class PostController {
                                     }
                                 })
                             } else {
-                                Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult._id }, { like: !result.like, likeTimestamp: Date.now() }, { new: true }, (error: any, result: any) => {
+                                Like.findOneAndUpdate({ postId: mongoose.Types.ObjectId(req.body.postId), userId: mongoose.Types.ObjectId(tokenResult.id) }, { like: !result.like }, { new: true }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
                                         })
                                     } else {
-                                        Post.findOne({ _id: req.body.postId }, (error: any, result: any) => {
+                                        Post.findOne({ _id: mongoose.Types.ObjectId(req.body.postId) }, (error: any, result: any) => {
                                             if (error) {
                                                 res.send({
                                                     error: error
                                                 })
                                             } else {
-                                                Post.findOneAndUpdate({ _id: req.body.postId }, { likes: result.likes - 1 }, (error: any, result: any) => {
+                                                Post.findOneAndUpdate({ _id: mongoose.Types.ObjectId(req.body.postId) }, { likes: result.likes - 1 }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -369,14 +375,14 @@ class PostController {
                         error: error
                     })
                 } else {
-                    Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult._id }, (error: any, result: any) => {
+                    Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, (error: any, result: any) => {
                         if (error) {
                             res.send({
                                 error: error
                             })
                         } else if (result == 0) {
                             const schema = {
-                                userId: tokenResult._id,
+                                userId: tokenResult.id,
                                 postId: req.body.postId,
                                 superLike: true,
                                 superLikeTimestamp: Date.now()
@@ -411,7 +417,7 @@ class PostController {
                             })
                         } else {
                             if (result.like == false) {
-                                Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult._id }, { superLike: !result.superLike, superLikeTimestamp: Date.now() }, { new: true }, (error: any, result: any) => {
+                                Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, { superLike: !result.superLike, superLikeTimestamp: Date.now() }, { new: true }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -440,7 +446,7 @@ class PostController {
                                     }
                                 })
                             } else {
-                                Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult._id }, { superLike: !result.superLike, superLikeTimestamp: Date.now() }, { new: true }, (error: any, result: any) => {
+                                Like.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, { superLike: !result.superLike, superLikeTimestamp: Date.now() }, { new: true }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -490,7 +496,7 @@ class PostController {
                     })
                 } else {
                     var schema = {
-                        userId: tokenResult._id,
+                        userId: tokenResult.id,
                         postId: req.body.postId,
                         comment: req.body.comment,
                         timestamp: Date.now()
@@ -532,7 +538,7 @@ class PostController {
                             })
                         } else if (result == 0) {
                             var schema = {
-                                userId: tokenResult._id,
+                                userId: tokenResult.id,
                                 postId: req.body.postId,
                                 bookmark: true,
                                 timestamp: Date.now()
@@ -567,7 +573,7 @@ class PostController {
                             })
                         } else {
                             if (result.bookmark == false) {
-                                Bookmark.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult._id }, { bookmark: !result.bookmark, timestamp: Date.now() }, (error: any, result: any) => {
+                                Bookmark.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, { bookmark: !result.bookmark, timestamp: Date.now() }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -596,7 +602,7 @@ class PostController {
                                     }
                                 })
                             } else {
-                                Bookmark.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult._id }, { bookmark: !result.bookmark, timestamp: Date.now() }, (error: any, result: any) => {
+                                Bookmark.findOneAndUpdate({ postId: req.body.postId, userId: tokenResult.id }, { bookmark: !result.bookmark, timestamp: Date.now() }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
