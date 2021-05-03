@@ -94,7 +94,7 @@ class PostController {
                         {
                             $lookup: {
                                 from: 'likes',
-                                let: {  },
+                                let: {},
                                 pipeline: [
                                     {
                                         $match: {
@@ -540,7 +540,7 @@ class PostController {
                             res.send({
                                 error: error
                             })
-                        } else if (result == 0) {
+                        } else if (result == null) {
                             var schema = {
                                 userId: tokenResult.id,
                                 postId: req.body.postId,
@@ -635,6 +635,48 @@ class PostController {
                                     }
                                 })
                             }
+                        }
+                    })
+                }
+            })
+        }
+    }
+
+    getBookmarks(req: any, res: any) {
+        var token = req.headers.token;
+        if (!token) {
+            res.send({
+                message: 'No Token Found'
+            })
+        } else {
+            jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
+                if (error) {
+                    res.send({
+                        error: error
+                    })
+                } else {
+                    Bookmark.aggregate([
+                        {
+                            $match: { userId: tokenResult.id }
+                        },
+                        {
+                            $lookup: {
+                                from: 'posts',
+                                as: 'posts',
+                                localField: 'postId',
+                                foreignField: '_id'
+                            }
+                        }
+                    ], (error: any, result: any) => {
+                        if (error) {
+                            res.send({
+                                error: error
+                            })
+                        } else {
+                            res.send({
+                                message: 'Bookmarks',
+                                result: result
+                            })
                         }
                     })
                 }

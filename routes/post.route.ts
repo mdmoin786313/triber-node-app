@@ -12,8 +12,16 @@ export default class PostRoute {
         app.post('/v1/like', postController.likePost);
     }
 
+    bookmark(app: Express) {
+        app.post('/v1/bookmark', postController.bookmarkPost);
+    }
+
     getPosts(app: Express) {
         app.get('/v1/posts', postController.getPosts);
+    }
+
+    getBookmarks(app: Express) {
+        app.get('/v1/bookmarks', postController.getBookmarks);
     }
 
     deletePost(app: Express) {
@@ -35,5 +43,7 @@ export default class PostRoute {
         this.archivePost(app);
         this.mutePost(app);
         this.like(app);
+        this.bookmark(app);
+        this.getBookmarks(app);
     }
 }
