@@ -8,7 +8,11 @@ export default class AuthRoute {
     }
 
     userInfo(app: Express) {
-        app.get('/v1/auth', authController.userInfo);
+        app.post('/v1/profile', authController.userInfo);
+    }
+
+    updateProfile(app: Express) {
+        app.put('/v1/update-user', authController.updateProfile);
     }
 
     userLogin(app: Express) {
@@ -24,5 +28,6 @@ export default class AuthRoute {
         this.userInfo(app);
         this.userLogin(app);
         this.verifyToken(app);
+        this.updateProfile(app);
     }
 }

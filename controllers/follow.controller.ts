@@ -1,9 +1,57 @@
 import Follow from "../models/follow.model";
 import Auth from "../models/auth.model";
-
+const mongoose = require('mongoose');
 let jwt = require('jsonwebtoken');
 
 class FollowController {
+    getFollowing(req: any, res: any) {
+        var token = req.headers.token;
+        if (!token) {
+            res.send({
+                message: 'No Token Found'
+            })
+        } else {
+            jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
+                if (error) {
+                    res.send({
+                        error: error
+                    })
+                } else {
+                    Follow.aggregate([
+                        {
+                            $match: { responderId: mongoose.Types.ObjectId(tokenResult.id), status: 2 }
+                        },
+                        {
+                            $lookup: {
+                                from: 'auths',
+                                let: {  },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            
+                                        }
+                                    }
+                                ],
+                                as: 'user'
+                            }
+                        }
+                    ], (error: any, result: any) => {
+                        if (error) {
+                            res.send({
+                                error: error
+                            })
+                        } else {
+                            res.send({
+                                message: 'User Following',
+                                result: result
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    }
+
     follow(req: any, res: any) {
         var token = req.headers.token;
         if (!token) {
