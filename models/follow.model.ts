@@ -1,11 +1,13 @@
+import { ObjectId } from "bson";
+
 const mongoose = require('mongoose');
 
 const followSchema = mongoose.Schema({
     userId: {
-        type: String
+        type: ObjectId
     },
     responderId: {
-        type: String
+        type: ObjectId
     },
     followStatus: {
         type: Number

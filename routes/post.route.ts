@@ -1,6 +1,5 @@
 import { Express } from 'express';
 import postController from '../controllers/post.controller';
-import upload from '../config/multer.config';
 
 
 export default class PostRoute {

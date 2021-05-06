@@ -4,52 +4,137 @@ const mongoose = require('mongoose');
 let jwt = require('jsonwebtoken');
 
 class FollowController {
-    getFollowing(req: any, res: any) {
+    getFollowers(req: any, res: any) {
         var token = req.headers.token;
-        if (!token) {
-            res.send({
-                message: 'No Token Found'
-            })
-        } else {
-            jwt.verify(token, 'moin1234', (error: any, tokenResult: any) => {
-                if (error) {
-                    res.send({
-                        error: error
-                    })
-                } else {
-                    Follow.aggregate([
-                        {
-                            $match: { responderId: mongoose.Types.ObjectId(tokenResult.id), status: 2 }
-                        },
-                        {
-                            $lookup: {
-                                from: 'auths',
-                                let: {  },
-                                pipeline: [
-                                    {
-                                        $match: {
-                                            
-                                        }
-                                    }
-                                ],
-                                as: 'user'
-                            }
+
+        jwt.verify(token, 'moin1234', (err: any, user: any) => {
+            if (err) {
+                res.send({
+                    message: "Unauthorized Access!",
+                    status: "400",
+                    error: err,
+                    responseCode: 500
+                })
+            } else {
+                Follow.aggregate([
+                    { $match: { userId: mongoose.Types.ObjectId(req.body.userId), status: 2 } },
+                    {
+                        $lookup: {
+                            from: 'auths',
+                            localField: 'responderId',
+                            foreignField: '_id',
+                            as: 'user'
                         }
-                    ], (error: any, result: any) => {
+                    },
+                ],
+                    (error: any, result: any) => {
                         if (error) {
                             res.send({
-                                error: error
+                                message: "Undefined DB Error",
+                                error: error,
+                                status: 200,
+                                responseCode: 700
                             })
                         } else {
+                            var user: any = [];
+                            result.forEach((activity: any) => {
+                                // var status = activity.status.find(
+                                //     (s: any) => {
+
+                                //         return (JSON.stringify(s.userId)) === (JSON.stringify(activity.reqID));
+                                //     }
+                                // );
+                                // activity.user[0].status = status;
+                                user.push(activity.user[0]);
+                            });
                             res.send({
-                                message: 'User Following',
-                                result: result
+                                message: "Follower Count",
+                                status: 200,
+                                responseCode: 2000,
+                                length: user.length,
+                                result: user,
                             })
                         }
                     })
-                }
-            })
-        }
+            }
+        })
+    }
+
+    getFollowing(req: any, res: any) {
+        var token = req.headers.token;
+
+        jwt.verify(token, 'moin1234', (err: any, user: any) => {
+            if (err) {
+                res.send({
+                    message: "Unauthorized Access!",
+                    status: "400",
+                    error: err,
+                    responseCode: 500
+                })
+            } else {
+
+                Follow.aggregate([{ $match: { responderId: mongoose.Types.ObjectId(req.body.userId), status: 2 } },
+                {
+                    $lookup: {
+                        from: 'auths',
+                        localField: 'userId',
+                        foreignField: '_id',
+                        as: 'user'
+                    }
+                },
+                    // {
+                    //     $lookup: {
+                    //         from: 'follows',
+                    //         let: {
+                    //             userId: "$userId",
+                    //             reqID: "$reqID"
+                    //         },
+                    //         pipeline: [
+                    //             {
+                    //                 $match: {
+                    //                     $expr: {
+                    //                         $and: [
+                    //                             { $eq: ["$reqID", mongoose.Types.ObjectId(user._id)] },
+                    //                         ]
+                    //                     }
+                    //                 }
+                    //             }
+                    //         ],
+                    //         as: "status"
+                    //     }
+                    // },
+                ],
+                    (error: any, result: any) => {
+                        if (error) {
+                            res.send({
+                                message: "Undefined DB Error",
+                                error: error,
+                                status: 200,
+                                responseCode: 700
+                            })
+                        } else {
+                            var user: any = [];
+                            result.forEach((activity: any) => {
+                                // var status = activity.status.find(
+                                //     (s: any) => {
+
+                                //         return (JSON.stringify(s.userId)) === (JSON.stringify(activity.userId));
+                                //     }
+                                // );
+                                // activity.user[0].status = status;
+                                user.push(activity.user[0]);
+                            });
+                            res.send({
+                                message: "Follower Count",
+                                status: 200,
+                                responseCode: 2000,
+                                length: user.length,
+                                result: user
+                            })
+                        }
+                    })
+            }
+        })
     }
 
     follow(req: any, res: any) {
@@ -83,6 +168,12 @@ class FollowController {
                                         error: error
                                     })
                                 } else if (result.isPrivate == true) {
+                                    var schema = {
+                                        userId: tokenResult.id,
+                                        responderId: req.body.responderId,
+                                        followStatus: 1,
+                                        timestamp: Date.now()
+                                    }
                                     Follow.create(schema, (error: any, result: any) => {
                                         if (error) {
                                             res.send({

@@ -1,5 +1,6 @@
 import express from "express";
 import AuthRoute from './routes/auth.route';
+import FollowRoute from "./routes/follow.route";
 import PostRoute from "./routes/post.route";
 import ProfileROute from "./routes/profile.route";
 import SearchRoute from "./routes/search.route";
@@ -25,6 +26,8 @@ const profileRoute = new ProfileROute();
 profileRoute.profileRoute(app);
 const searchRoute = new SearchRoute();
 searchRoute.search(app);
+const followRoute = new FollowRoute();
+followRoute.followRoute(app);
 
 app.use('/', swagger);
 
