@@ -156,40 +156,21 @@ class FollowController {
                         followStatus: 1,
                         timestamp: Date.now()
                     }
-                    Follow.findOne({ userId: schema.userId, responderId: schema.responderId }, (error: any, result: any) => {
+                    Follow.findOne({ userId: mongoose.Types.ObjectId(schema.userId), responderId: mongoose.Types.ObjectId(schema.responderId) }, (error: any, result: any) => {
                         if (error) {
                             res.send({
                                 error: error
                             })
-                        } else if (result == 0) {
-                            Auth.findOne({ _id: schema.responderId }, (error: any, user: any) => {
+                        } else if (result == null) {
+                            Auth.findOne({ _id: mongoose.Types.ObjectId(schema.responderId) }, (error: any, user: any) => {
                                 if (error) {
                                     res.send({
                                         error: error
                                     })
-                                } else if (result.isPrivate == true) {
-                                    var schema = {
-                                        userId: tokenResult.id,
-                                        responderId: req.body.responderId,
-                                        followStatus: 1,
-                                        timestamp: Date.now()
-                                    }
-                                    Follow.create(schema, (error: any, result: any) => {
-                                        if (error) {
-                                            res.send({
-                                                error: error
-                                            })
-                                        } else {
-                                            res.send({
-                                                message: 'User Requested',
-                                                result: result
-                                            })
-                                        }
-                                    })
                                 } else {
                                     var schema = {
-                                        userId: tokenResult.id,
-                                        responderId: req.body.responderId,
+                                        userId: mongoose.Types.ObjectId(tokenResult.id),
+                                        responderId: mongoose.Types.ObjectId(req.body.responderId),
                                         followStatus: 2,
                                         timestamp: Date.now()
                                     }
@@ -199,7 +180,7 @@ class FollowController {
                                                 error: error
                                             })
                                         } else {
-                                            Auth.findOneAndUpdate({ _id: schema.responderId }, { followersCount: user.followersCount + 1 }, (error: any, result: any) => {
+                                            Auth.findOneAndUpdate({ _id: mongoose.Types.ObjectId(schema.responderId) }, { followersCount: user.followersCount + 1 }, (error: any, result: any) => {
                                                 if (error) {
                                                     res.send({
                                                         error: error
@@ -217,7 +198,7 @@ class FollowController {
                             })
                         } else {
                             if (result.isPrivate == true && result.followStatus == 0) {
-                                Follow.findOneAndUpdate({ userId: schema.userId, responderId: schema.responderId }, { followStatus: 1, timestamp: Date.now() }, (error: any, result: any) => {
+                                Follow.findOneAndUpdate({ userId: mongoose.Types.ObjectId(schema.userId), responderId: mongoose.Types.ObjectId(schema.responderId) }, { followStatus: 1, timestamp: Date.now() }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -230,19 +211,19 @@ class FollowController {
                                     }
                                 })
                             } else if (result.isPrivate == false && result.followStatus == 0) {
-                                Follow.findOneAndUpdate({ userId: schema.userId, responderId: schema.responderId }, { followStatus: 2, timestamp: Date.now() }, (error: any, result: any) => {
+                                Follow.findOneAndUpdate({ userId: mongoose.Types.ObjectId(schema.userId), responderId: mongoose.Types.ObjectId(schema.responderId) }, { followStatus: 2, timestamp: Date.now() }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
                                         })
                                     } else {
-                                        Auth.findOne({ _id: schema.responderId }, (error: any, result: any) => {
+                                        Auth.findOne({ _id: mongoose.Types.ObjectId(schema.responderId) }, (error: any, result: any) => {
                                             if (error) {
                                                 res.send({
                                                     error: error
                                                 })
                                             } else {
-                                                Auth.findOneAndUpdate({ _id: schema.responderId }, { followersCount: result.followersCount + 1 }, (error: any, result: any) => {
+                                                Auth.findOneAndUpdate({ _id: mongoose.Types.ObjectId(schema.responderId) }, { followersCount: result.followersCount + 1 }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
@@ -259,7 +240,7 @@ class FollowController {
                                     }
                                 })
                             } else if (result.isPrivate == true && result.followStatus == 1) {
-                                Follow.findOneAndUpdate({ userId: schema.userId, responderId: schema.responderId }, { followStatus: 0, timestamp: Date.now() }, (error: any, result: any) => {
+                                Follow.findOneAndUpdate({ userId: mongoose.Types.ObjectId(schema.userId), responderId: mongoose.Types.ObjectId(schema.responderId) }, { followStatus: 0, timestamp: Date.now() }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -272,7 +253,7 @@ class FollowController {
                                     }
                                 })
                             } else if (result.isPrivate == false && result.followStatus == 2) {
-                                Follow.findOneAndUpdate({ userId: schema.userId, responderId: schema.responderId }, { followStatus: 0, timestamp: Date.now() }, (error: any, result: any) => {
+                                Follow.findOneAndUpdate({ userId: mongoose.Types.ObjectId(schema.userId), responderId: mongoose.Types.ObjectId(schema.responderId) }, { followStatus: 0, timestamp: Date.now() }, (error: any, result: any) => {
                                     if (error) {
                                         res.send({
                                             error: error
@@ -284,7 +265,7 @@ class FollowController {
                                                     error: error
                                                 })
                                             } else {
-                                                Auth.findOneAndUpdate({ _id: schema.responderId }, { followersCount: result.followersCount - 1 }, (error: any, result: any) => {
+                                                Auth.findOneAndUpdate({ _id: mongoose.Types.ObjectId(schema.responderId) }, { followersCount: result.followersCount - 1 }, (error: any, result: any) => {
                                                     if (error) {
                                                         res.send({
                                                             error: error
